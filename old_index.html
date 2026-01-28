@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>波多黎各 1897 互動遊戲助手</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #fdfbf7; /* Warm Parchment */
+            color: #2c3e50;
+        }
+        h1, h2, h3, h4, .serif {
+            font-family: 'Crimson Text', 'Noto Sans TC', serif;
+        }
+        .bg-parchment {
+            background-color: #fdfbf7;
+        }
+        .bg-ocean {
+            background-color: #2980b9;
+        }
+        .text-ocean {
+            color: #2980b9;
+        }
+        .bg-tile {
+            background-color: #d35400;
+        }
+        .text-tile {
+            color: #d35400;
+        }
+        
+        /* Chart Container Styling */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Card Hover Effects */
+        .interactive-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-link.active {
+            border-bottom: 2px solid #d35400;
+            color: #d35400;
+            font-weight: 700;
+        }
+    </style>
+
+    <!-- Chosen Palette: Warm Neutrals & Colonial Accents -->
+    <!-- Application Structure Plan: 
+         1. 概覽/儀表板：高層次遊戲概念與建築分佈圖。
+         2. 角色：詳細列出行動與特權。
+         3. 建築手冊：可篩選的所有建築列表。
+         4. 交易與運送：最複雜階段的互動式清單。
+         5. 計分計算機：大型建築 VPs 的動態計算。
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="flex flex-col min-h-screen text-gray-800">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold serif text-tile">波多黎各 1897</span>
+                </div>
+                <div class="hidden md:flex space-x-8 items-center">
+                    <button onclick="navTo('dashboard')" class="nav-link active px-3 py-2 text-sm font-medium transition-colors hover:text-tile" id="nav-dashboard">概覽</button>
+                    <button onclick="navTo('roles')" class="nav-link px-3 py-2 text-sm font-medium transition-colors hover:text-tile" id="nav-roles">角色詳解</button>
+                    <button onclick="navTo('buildings')" class="nav-link px-3 py-2 text-sm font-medium transition-colors hover:text-tile" id="nav-buildings">建築手冊</button>
+                    <button onclick="navTo('trade')" class="nav-link px-3 py-2 text-sm font-medium transition-colors hover:text-tile" id="nav-trade">交易與運送</button>
+                    <button onclick="navTo('scoring')" class="nav-link px-3 py-2 text-sm font-medium transition-colors hover:text-tile" id="nav-scoring">計分工具</button>
+                </div>
+                <div class="flex items-center md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-gray-500 hover:text-gray-700 focus:outline-none p-2">
+                        <span class="text-2xl">☰</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-gray-100">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <button onclick="navTo('dashboard')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 hover:text-tile">概覽</button>
+                <button onclick="navTo('roles')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 hover:text-tile">角色詳解</button>
+                <button onclick="navTo('buildings')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 hover:text-tile">建築手冊</button>
+                <button onclick="navTo('trade')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 hover:text-tile">交易與運送</button>
+                <button onclick="navTo('scoring')" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-gray-50 hover:text-tile">計分工具</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- SECTION: DASHBOARD / OVERVIEW -->
+        <section id="view-dashboard" class="space-y-8 animate-fade-in">
+            <div class="text-center max-w-3xl mx-auto">
+                <h1 class="text-4xl font-bold mb-4 serif text-gray-900">歡迎來到 1897 年的波多黎各</h1>
+                <p class="text-lg text-gray-600">
+                    本工具為《波多黎各 1897》提供全方位的互動支援。您可以查看角色特權、過濾建築、檢查交易規則，並高效計算終局得分。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Quick Stats / End Game Triggers -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h2 class="text-xl font-bold mb-4 serif text-tile">遊戲結束觸發條件</h2>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3">🏙️</span>
+                            <div>
+                                <span class="font-bold">建築格填滿：</span>
+                                <p class="text-sm text-gray-600">當輪結束時，若有玩家填滿了 12 格建築空間，遊戲結束。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3">👷</span>
+                            <div>
+                                <span class="font-bold">勞工耗盡：</span>
+                                <p class="text-sm text-gray-600">若供應堆的勞工不足以填滿下一輪的勞工船時，遊戲結束。</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="text-2xl mr-3">🏆</span>
+                            <div>
+                                <span class="font-bold">勝利分數 (VP) 耗盡：</span>
+                                <p class="text-sm text-gray-600">若 VP 分數標記被拿光時，遊戲結束（之後獲得的分數請用紙筆記錄）。</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Building Strategy Chart -->
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex flex-col items-center">
+                    <h2 class="text-xl font-bold mb-2 serif text-tile">建築類型分佈</h2>
+                    <p class="text-xs text-gray-500 mb-4 text-center">各類型建築的數量分佈。平衡生產與特殊能力是獲勝關鍵。</p>
+                    <div class="chart-container">
+                        <canvas id="buildingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goods Reference -->
+            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                <h2 class="text-xl font-bold mb-4 serif text-tile">貨物與價值參考</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-center">
+                    <div class="p-3 bg-yellow-50 rounded border border-yellow-200">
+                        <div class="text-2xl">🌽</div>
+                        <div class="font-bold text-yellow-800">玉米/水果</div>
+                        <div class="text-xs text-gray-500">價值: 0 | 工廠: 無需</div>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded border border-blue-200">
+                        <div class="text-2xl">🧞</div>
+                        <div class="font-bold text-blue-800">靛藍/染料</div>
+                        <div class="text-xs text-gray-500">價值: 1 | 工廠: 小型</div>
+                    </div>
+                    <div class="p-3 bg-orange-50 rounded border border-orange-200">
+                        <div class="text-2xl">🍬</div>
+                        <div class="font-bold text-orange-800">砂糖</div>
+                        <div class="text-xs text-gray-500">價值: 2 | 工廠: 大型</div>
+                    </div>
+                    <div class="p-3 bg-amber-50 rounded border border-amber-200">
+                        <div class="text-2xl">🍂</div>
+                        <div class="font-bold text-amber-800">菸草</div>
+                        <div class="text-xs text-gray-500">價值: 3 | 工廠: 大型</div>
+                    </div>
+                    <div class="p-3 bg-stone-50 rounded border border-stone-200">
+                        <div class="text-2xl">☕</div>
+                        <div class="font-bold text-stone-800">咖啡</div>
+                        <div class="text-xs text-gray-500">價值: 4 | 工廠: 大型</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: ROLES -->
+        <section id="view-roles" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white p-6 rounded-lg border-l-4 border-tile shadow-sm">
+                <h2 class="text-2xl font-bold serif text-gray-900">人物角色詳解</h2>
+                <p class="text-gray-600 mt-2">
+                    點擊角色卡片查看詳細規則。請記住：選擇角色的玩家可獲得 <strong>特權 (Advantage)</strong>。所有玩家（含選擇者）皆可執行 <strong>行動 (Action)</strong>。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="roles-grid">
+                <!-- Roles injected via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION: BUILDINGS -->
+        <section id="view-buildings" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white p-6 rounded-lg border-l-4 border-tile shadow-sm">
+                <h2 class="text-2xl font-bold serif text-gray-900">建築手冊</h2>
+                <p class="text-gray-600 mt-2 mb-4">
+                    快速搜尋並篩選所有建築，為您的殖民地規劃最佳版圖。
+                </p>
+                
+                <!-- Filters -->
+                <div class="flex flex-wrap gap-4 items-center bg-gray-50 p-4 rounded-lg">
+                    <div class="flex-grow">
+                        <label class="block text-xs font-bold text-gray-500 uppercase">關鍵字搜尋</label>
+                        <input type="text" id="building-search" placeholder="輸入名稱或能力描述..." class="w-full mt-1 px-3 py-2 border rounded shadow-sm focus:ring-tile focus:border-tile">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">類型</label>
+                        <select id="building-type-filter" class="mt-1 block w-full px-3 py-2 border rounded shadow-sm focus:ring-tile focus:border-tile">
+                            <option value="all">全部類型</option>
+                            <option value="production">生產建築 (貨物)</option>
+                            <option value="violet">特殊建築 (功能)</option>
+                            <option value="large">大型建築 (計分)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 uppercase">排序依據</label>
+                        <select id="building-sort" class="mt-1 block w-full px-3 py-2 border rounded shadow-sm focus:ring-tile focus:border-tile">
+                            <option value="cost-asc">費用：由低到高</option>
+                            <option value="cost-desc">費用：由高到低</option>
+                            <option value="vp-desc">VP：由高到低</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" id="buildings-grid">
+                <!-- Buildings injected via JS -->
+            </div>
+        </section>
+
+        <!-- SECTION: TRADE & SHIP -->
+        <section id="view-trade" class="hidden space-y-8 animate-fade-in">
+            
+            <!-- Trader Assistant -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+                <div class="bg-indigo-600 p-4 text-white">
+                    <h2 class="text-2xl font-bold serif flex items-center">
+                        <span class="mr-2">💰</span> 交易階段助手
+                    </h2>
+                </div>
+                <div class="p-6">
+                    <p class="mb-4 text-gray-700 italic">「我可以賣掉這項貨物嗎？」</p>
+                    
+                    <div class="bg-gray-100 p-4 rounded mb-6">
+                        <h3 class="font-bold text-gray-800 mb-2">交易中心 (Trading House) 狀態</h3>
+                        <div class="flex items-center space-x-4 mb-4">
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="house-full" class="form-checkbox h-5 w-5 text-indigo-600 rounded">
+                                <span>交易中心是否已滿 (4 個桶子)？</span>
+                            </label>
+                        </div>
+                        <div class="mb-2 text-sm font-bold text-gray-600">目前已存在的貨物：</div>
+                        <div class="flex flex-wrap gap-2" id="trading-house-goods">
+                            <button class="th-good px-3 py-1 rounded border bg-white text-gray-400 hover:border-indigo-500" data-good="玉米">玉米</button>
+                            <button class="th-good px-3 py-1 rounded border bg-white text-gray-400 hover:border-indigo-500" data-good="靛藍">靛藍</button>
+                            <button class="th-good px-3 py-1 rounded border bg-white text-gray-400 hover:border-indigo-500" data-good="砂糖">砂糖</button>
+                            <button class="th-good px-3 py-1 rounded border bg-white text-gray-400 hover:border-indigo-500" data-good="菸草">菸草</button>
+                            <button class="th-good px-3 py-1 rounded border bg-white text-gray-400 hover:border-indigo-500" data-good="咖啡">咖啡</button>
+                        </div>
+                    </div>
+
+                    <div id="trader-result" class="p-4 rounded bg-gray-50 border border-gray-200 text-center font-medium">
+                        請點擊上方貨物檢查販售規則。
+                    </div>
+                    
+                    <div class="mt-4 text-xs text-gray-500">
+                        * 注意：「辦事處 (Office)」建築允許您販售交易中心已存在的同類貨物。
+                    </div>
+                </div>
+            </div>
+
+            <!-- Captain Assistant -->
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200">
+                <div class="bg-blue-600 p-4 text-white">
+                    <h2 class="text-2xl font-bold serif flex items-center">
+                        <span class="mr-2">🚢</span> 船長階段 (裝載) 規則
+                    </h2>
+                </div>
+                <div class="p-6 space-y-4">
+                    <div class="flex flex-col md:flex-row gap-6">
+                        <div class="flex-1">
+                            <h3 class="font-bold text-lg mb-2">裝載黃金準則</h3>
+                            <ul class="list-disc pl-5 space-y-2 text-gray-700">
+                                <li><strong>強制執行：</strong> 若能裝載，則「必須」裝載。</li>
+                                <li><strong>一船一貨：</strong> 每艘船只能載送一種貨物。</li>
+                                <li><strong>貨不重疊：</strong> 同種貨物不能裝在不同的船上。</li>
+                                <li><strong>最大化裝載：</strong> 必須裝載盡可能多的桶子。</li>
+                            </ul>
+                        </div>
+                        <div class="flex-1 bg-blue-50 p-4 rounded border border-blue-100">
+                            <h3 class="font-bold text-lg mb-2 text-blue-800">裝載可能性檢查</h3>
+                            <p class="text-sm mb-3">設定目前船隻狀況，檢查您的貨物是否可裝載：</p>
+                            
+                            <div class="grid grid-cols-1 gap-2 text-sm">
+                                <div class="flex justify-between items-center">
+                                    <span>貨船 1 裝載內容：</span>
+                                    <select id="ship1-good" class="border rounded p-1 text-sm w-32" onchange="checkShipping()">
+                                        <option value="">(空船)</option>
+                                        <option value="玉米">玉米</option>
+                                        <option value="靛藍">靛藍</option>
+                                        <option value="砂糖">砂糖</option>
+                                        <option value="菸草">菸草</option>
+                                        <option value="咖啡">咖啡</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>貨船 2 裝載內容：</span>
+                                    <select id="ship2-good" class="border rounded p-1 text-sm w-32" onchange="checkShipping()">
+                                        <option value="">(空船)</option>
+                                        <option value="玉米">玉米</option>
+                                        <option value="靛藍">靛藍</option>
+                                        <option value="砂糖">砂糖</option>
+                                        <option value="菸草">菸草</option>
+                                        <option value="咖啡">咖啡</option>
+                                    </select>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span>貨船 3 裝載內容：</span>
+                                    <select id="ship3-good" class="border rounded p-1 text-sm w-32" onchange="checkShipping()">
+                                        <option value="">(空船)</option>
+                                        <option value="玉米">玉米</option>
+                                        <option value="靛藍">靛藍</option>
+                                        <option value="砂糖">砂糖</option>
+                                        <option value="菸草">菸草</option>
+                                        <option value="咖啡">咖啡</option>
+                                    </select>
+                                </div>
+                                <hr class="border-blue-200 my-2">
+                                <div class="flex justify-between items-center font-bold">
+                                    <span>我想裝載的貨物：</span>
+                                    <select id="my-good" class="border rounded p-1 text-sm w-32 bg-white" onchange="checkShipping()">
+                                        <option value="玉米">玉米</option>
+                                        <option value="靛藍">靛藍</option>
+                                        <option value="砂糖">砂糖</option>
+                                        <option value="菸草">菸草</option>
+                                        <option value="咖啡">咖啡</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div id="ship-result" class="mt-3 font-bold text-center text-blue-900 p-2 bg-white rounded border border-blue-200">
+                                請設定貨船狀態...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: SCORING -->
+        <section id="view-scoring" class="hidden space-y-6 animate-fade-in">
+            <div class="bg-white p-6 rounded-lg border-l-4 border-tile shadow-sm">
+                <h2 class="text-2xl font-bold serif text-gray-900">遊戲終局計分工具</h2>
+                <p class="text-gray-600 mt-2">
+                    大型建築（成本 10）根據您的版圖狀態提供變動的 VP。使用此計算機快速結算您的總分。
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Calculator Form -->
+                <div class="space-y-4">
+                    <!-- Guild Hall -->
+                    <div class="bg-white p-4 rounded shadow border border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-indigo-700">行會大廳 (Guild Hall)</h3>
+                            <span class="text-2xl font-bold" id="score-guild">0 VP</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">每棟小型生產建築 1 VP，大型生產建築 2 VP。</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold uppercase">小型生產建築數量</label>
+                                <input type="number" min="0" max="10" value="0" class="score-input w-full p-2 border rounded" data-target="guild">
+                            </div>
+                            <div>
+                                <label class="text-xs font-bold uppercase">大型生產建築數量</label>
+                                <input type="number" min="0" max="5" value="0" class="score-input w-full p-2 border rounded" data-target="guild-large">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Residence -->
+                    <div class="bg-white p-4 rounded shadow border border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-indigo-700">官邸 (Residence)</h3>
+                            <span class="text-2xl font-bold" id="score-residence">4 VP</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">根據已填滿的島嶼格子（種植園/採石場）計分。< 10 = 4VP。</p>
+                        <div>
+                            <label class="text-xs font-bold uppercase">已填滿的島嶼格子數</label>
+                            <input type="number" min="0" max="12" value="9" class="score-input w-full p-2 border rounded" data-target="residence">
+                        </div>
+                    </div>
+
+                    <!-- Fortress -->
+                    <div class="bg-white p-4 rounded shadow border border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-indigo-700">堡壘 (Fortress)</h3>
+                            <span class="text-2xl font-bold" id="score-fortress">0 VP</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">版圖上每 3 位勞工（含莊園/建築）得 1 VP。</p>
+                        <div>
+                            <label class="text-xs font-bold uppercase">總勞工人數</label>
+                            <input type="number" min="0" max="50" value="0" class="score-input w-full p-2 border rounded" data-target="fortress">
+                        </div>
+                    </div>
+
+                    <!-- Customs House -->
+                    <div class="bg-white p-4 rounded shadow border border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-indigo-700">海關 (Customs House)</h3>
+                            <span class="text-2xl font-bold" id="score-customs">0 VP</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">每 4 個 VP 分數標記（晶片）得 1 VP。</p>
+                        <div>
+                            <label class="text-xs font-bold uppercase">VP 標記總數</label>
+                            <input type="number" min="0" max="100" value="0" class="score-input w-full p-2 border rounded" data-target="customs">
+                        </div>
+                    </div>
+
+                    <!-- City Hall -->
+                    <div class="bg-white p-4 rounded shadow border border-gray-200">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-indigo-700">市政廳 (City Hall)</h3>
+                            <span class="text-2xl font-bold" id="score-cityhall">0 VP</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mb-2">每棟紫色特殊建築（含大型建築）得 1 VP。</p>
+                        <div>
+                            <label class="text-xs font-bold uppercase">紫色建築總數</label>
+                            <input type="number" min="0" max="12" value="0" class="score-input w-full p-2 border rounded" data-target="cityhall">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Score Display -->
+                <div class="flex flex-col justify-start">
+                    <div class="bg-tile text-white p-8 rounded-lg shadow-lg sticky top-24">
+                        <h3 class="text-xl font-bold opacity-90 mb-2">大型建築加成總計</h3>
+                        <div class="text-6xl font-bold serif mb-4" id="grand-total">4</div>
+                        <p class="text-sm opacity-80 border-t border-white/30 pt-4">
+                            將此數值加上您的「建築基礎 VP」與「VP 標記總數」即為最終得分。
+                        </p>
+                        <button onclick="resetScoring()" class="mt-6 bg-white text-tile px-4 py-2 rounded font-bold hover:bg-gray-100 transition w-full">重設計算機</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 py-8 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="mb-2">非官方《波多黎各 1897》遊戲助手。</p>
+            <p class="text-xs text-gray-500">基於 v1.1 玩家手冊製作。與遊戲出版社無關。</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // --- DATA STORE ---
+
+        const roles = [
+            {
+                name: "建築師 (Builder)",
+                icon: "🔨",
+                action: "建造一棟建築，將費用支付給銀行。",
+                advantage: "建造費用減少 1 塊錢。",
+                detail: "從建築師開始順時鐘進行。每輪最多建一棟。採石場可減少費用（最大折抵等於該建築 VP 值，費用最低為 0）。若玩家填滿所有建築位，遊戲結束。"
+            },
+            {
+                name: "船長 (Captain)",
+                icon: "🚢",
+                action: "將貨物裝載至貨船上以換取分數。",
+                advantage: "若有裝載至少 1 個桶子，額外獲得 1 VP。",
+                detail: "強制行動。每船一貨，同類不重疊。必須最大化裝載。裝載直到無人能載為止。滿載的船在階段結束時清空。"
+            },
+            {
+                name: "市長 (Mayor)",
+                icon: "🎩",
+                action: "從勞工船上分配勞工到建築或莊園。",
+                advantage: "從供應堆中額外拿取 1 位勞工。",
+                detail: "從市長開始輪流拿取 1 位勞工直到船上清空。拿完後玩家可自由重整版圖上的所有勞工位。若供應堆不足則觸發遊戲結束。"
+            },
+            {
+                name: "商人 (Trader)",
+                icon: "💰",
+                action: "賣出 1 項貨物給交易中心。",
+                advantage: "賣出時額外獲得 1 塊錢。",
+                detail: "交易中心最多收 4 桶。不可賣出中心已有的種類（除非有辦事處）。僅當中心全滿時才會在階段結束清空。"
+            },
+            {
+                name: "種植者 (Planter)",
+                icon: "🌱",
+                action: "拿取 1 片種植園板塊。",
+                advantage: "可改為拿取 1 片採石場板塊。",
+                detail: "回合結束後補充新的種植園板塊。採石場可用於減免建築建造費用。"
+            },
+            {
+                name: "工匠 (Craftsman)",
+                icon: "⚒️",
+                action: "生產貨物。",
+                advantage: "額外拿取 1 個您目前能產出的同類貨物。",
+                detail: "根據已進駐勞工的生產建築與對應莊園產出。貨物供應堆有限額。"
+            },
+            {
+                name: "探險家 (Adventurer)",
+                icon: "🗺️",
+                action: "無（略過）。",
+                advantage: "從銀行直接領取 1 塊錢。",
+                detail: "單純賺錢。在身無分文時非常實用。"
+            }
+        ];
+
+        const buildings = [
+            { name: "小型靛藍工廠", cost: 1, vp: 1, type: "production", detail: "產出靛藍。", quarry: 1 },
+            { name: "小型製糖廠", cost: 2, vp: 1, type: "production", detail: "產出砂糖。", quarry: 1 },
+            { name: "小型市場", cost: 1, vp: 1, type: "violet", detail: "賣貨時額外獲得 1 元。", quarry: 1 },
+            { name: "莊園 (Hacienda)", cost: 2, vp: 1, type: "violet", detail: "種植階段可額外從牌堆翻開 1 片種植園。", quarry: 1 },
+            { name: "建築小屋", cost: 2, vp: 1, type: "violet", detail: "種植階段可用特權拿取採石場。", quarry: 1 },
+            { name: "小型倉庫", cost: 3, vp: 1, type: "violet", detail: "船長階段結束可保留 1 種貨物不限數量。", quarry: 1 },
+            
+            { name: "大型靛藍工廠", cost: 3, vp: 2, type: "production", detail: "產出 3 份靛藍。", quarry: 2 },
+            { name: "大型製糖廠", cost: 4, vp: 2, type: "production", detail: "產出 3 份砂糖。", quarry: 2 },
+            { name: "收容所 (Hospice)", cost: 4, vp: 2, type: "violet", detail: "拿取板塊時自動從供應堆獲取 1 名勞工。", quarry: 2 },
+            { name: "辦事處 (Office)", cost: 5, vp: 2, type: "violet", detail: "允許賣出交易中心已有的貨物種類。", quarry: 2 },
+            { name: "大型市場", cost: 5, vp: 2, type: "violet", detail: "賣貨時額外獲 2 元（與小型可疊加）。", quarry: 2 },
+            { name: "大型倉庫", cost: 6, vp: 2, type: "violet", detail: "船長階段結束可保留 2 種貨物不限數量。", quarry: 2 },
+            
+            { name: "菸草乾燥室", cost: 5, vp: 3, type: "production", detail: "產出 3 份菸草。", quarry: 3 },
+            { name: "咖啡烘焙房", cost: 6, vp: 3, type: "production", detail: "產出 2 份咖啡。", quarry: 3 },
+            { name: "工廠 (Factory)", cost: 7, vp: 3, type: "violet", detail: "生產多種貨物時領取現金補貼。", quarry: 3 },
+            { name: "大學", cost: 8, vp: 3, type: "violet", detail: "建造時自動獲得 1 位勞工入駐。", quarry: 3 },
+            { name: "港口", cost: 8, vp: 3, type: "violet", detail: "每次裝載貨物到船上時加 1 VP。", quarry: 3 },
+            { name: "私人碼頭 (Wharf)", cost: 9, vp: 3, type: "violet", detail: "擁有專屬貨船（無限容量、自選種類）。", quarry: 3 },
+            
+            { name: "行會大廳 (Guild Hall)", cost: 10, vp: 4, type: "large", detail: "計分：每棟小型生產建築 1VP，大型 2VP。", quarry: 4 },
+            { name: "官邸 (Residence)", cost: 10, vp: 4, type: "large", detail: "計分：根據島嶼版塊填滿程度計分。", quarry: 4 },
+            { name: "堡壘 (Fortress)", cost: 10, vp: 4, type: "large", detail: "計分：每 3 位勞工得 1 VP。", quarry: 4 },
+            { name: "海關 (Customs House)", cost: 10, vp: 4, type: "large", detail: "計分：每 4 個 VP 標記計 1 VP。", quarry: 4 },
+            { name: "市政廳 (City Hall)", cost: 10, vp: 4, type: "large", detail: "計分：每棟紫色建築得 1 VP。", quarry: 4 },
+        ];
+
+        // --- INIT & NAVIGATION ---
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            renderRoles();
+            renderBuildings(buildings);
+            setupScoringListeners();
+            setupTradeListeners();
+        });
+
+        function navTo(viewId) {
+            document.querySelectorAll('section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+            const navBtn = document.getElementById(`nav-${viewId}`);
+            if(navBtn) navBtn.classList.add('active');
+            document.getElementById('mobile-menu').classList.add('hidden');
+            window.scrollTo(0, 0);
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('buildingChart').getContext('2d');
+            const typeCount = { production: 0, violet: 0, large: 0 };
+            buildings.forEach(b => {
+                if (b.type === 'production') typeCount.production++;
+                else if (b.type === 'large') typeCount.large++;
+                else typeCount.violet++;
+            });
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['生產建築', '特殊 (紫色)', '大型 (計分)'],
+                    datasets: [{
+                        data: [typeCount.production, typeCount.violet, typeCount.large],
+                        backgroundColor: ['#27ae60', '#8e44ad', '#d35400'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        function renderRoles() {
+            const grid = document.getElementById('roles-grid');
+            grid.innerHTML = roles.map(role => `
+                <div class="interactive-card bg-white rounded-lg p-6 shadow-sm border border-gray-200" onclick="this.classList.toggle('ring-2'); this.classList.toggle('ring-tile'); this.querySelector('.role-detail').classList.toggle('hidden');">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex items-center">
+                            <span class="text-4xl mr-3 bg-gray-100 p-2 rounded-full">${role.icon}</span>
+                            <h3 class="text-xl font-bold serif">${role.name}</h3>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex">
+                            <span class="font-bold w-24 text-tile">行動:</span>
+                            <span class="flex-1">${role.action}</span>
+                        </div>
+                        <div class="flex">
+                            <span class="font-bold w-24 text-indigo-600">特權:</span>
+                            <span class="flex-1 italic">${role.advantage}</span>
+                        </div>
+                    </div>
+                    <div class="role-detail hidden mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600 bg-gray-50 p-2 rounded animate-fade-in">
+                        <strong>規則細節：</strong> ${role.detail}
+                    </div>
+                    <div class="mt-4 text-center text-xs text-gray-400 font-bold uppercase tracking-wider">點擊查看詳情</div>
+                </div>
+            `).join('');
+        }
+
+        function renderBuildings(list) {
+            const grid = document.getElementById('buildings-grid');
+            if (list.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-8 text-gray-500">找不到符合條件的建築。</div>`;
+                return;
+            }
+
+            grid.innerHTML = list.map(b => {
+                let typeColor = 'bg-gray-100 text-gray-800';
+                let typeName = '未知';
+                if(b.type === 'production') { typeColor = 'bg-green-100 text-green-800'; typeName = '生產'; }
+                if(b.type === 'violet') { typeColor = 'bg-indigo-100 text-indigo-800'; typeName = '特殊'; }
+                if(b.type === 'large') { typeColor = 'bg-orange-100 text-orange-800'; typeName = '計分'; }
+
+                return `
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 flex flex-col h-full hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-bold serif text-lg">${b.name}</h3>
+                        <span class="px-2 py-1 rounded text-xs font-bold uppercase ${typeColor}">${typeName}</span>
+                    </div>
+                    <div class="flex justify-between text-sm mb-3">
+                        <span class="font-bold text-gray-600">成本: ${b.cost} 🟡</span>
+                        <span class="font-bold text-tile">${b.vp} VP</span>
+                    </div>
+                    <p class="text-sm text-gray-600 flex-grow">${b.detail}</p>
+                    <div class="mt-3 text-xs text-gray-400 border-t pt-2">
+                        採石場最高折抵: -${b.quarry}
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        const searchInput = document.getElementById('building-search');
+        const typeFilter = document.getElementById('building-type-filter');
+        const sortFilter = document.getElementById('building-sort');
+
+        function filterBuildings() {
+            const term = searchInput.value.toLowerCase();
+            const type = typeFilter.value;
+            const sort = sortFilter.value;
+
+            let filtered = buildings.filter(b => {
+                const matchesSearch = b.name.toLowerCase().includes(term) || b.detail.toLowerCase().includes(term);
+                const matchesType = type === 'all' || b.type === type;
+                return matchesSearch && matchesType;
+            });
+
+            filtered.sort((a, b) => {
+                if (sort === 'cost-asc') return a.cost - b.cost;
+                if (sort === 'cost-desc') return b.cost - a.cost;
+                if (sort === 'vp-desc') return b.vp - a.vp;
+                return 0;
+            });
+
+            renderBuildings(filtered);
+        }
+
+        [searchInput, typeFilter, sortFilter].forEach(el => el.addEventListener('input', filterBuildings));
+
+        function setupTradeListeners() {
+            document.querySelectorAll('.th-good').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('border-indigo-500');
+                    btn.classList.toggle('bg-indigo-50');
+                    btn.classList.toggle('text-indigo-700');
+                    btn.classList.toggle('font-bold');
+                    updateTradeStatus();
+                });
+            });
+            document.getElementById('house-full').addEventListener('change', updateTradeStatus);
+        }
+
+        function updateTradeStatus() {
+            const isFull = document.getElementById('house-full').checked;
+            const goodsInHouse = Array.from(document.querySelectorAll('.th-good.border-indigo-500')).map(b => b.dataset.good);
+            const resultDiv = document.getElementById('trader-result');
+            
+            if (isFull) {
+                resultDiv.innerHTML = `<span class="text-red-600">⛔ 交易中心已滿！目前無法賣出任何貨物。</span>`;
+                return;
+            }
+
+            if (goodsInHouse.length === 0) {
+                 resultDiv.innerHTML = `<span class="text-green-600">✅ 交易中心目前為空，您可以賣出任何種類。</span>`;
+            } else {
+                 resultDiv.innerHTML = `目前「不可」販售：<strong>${goodsInHouse.join(', ')}</strong><br><span class="text-xs text-gray-500">(除非您擁有「辦事處」建築)</span>`;
+            }
+        }
+
+        function checkShipping() {
+            const s1 = document.getElementById('ship1-good').value;
+            const s2 = document.getElementById('ship2-good').value;
+            const s3 = document.getElementById('ship3-good').value;
+            const mine = document.getElementById('my-good').value;
+            const result = document.getElementById('ship-result');
+
+            const ships = [s1, s2, s3].filter(s => s !== "");
+            const anyShipHasMyGood = ships.some(s => s === mine);
+            const emptyShipsAvailable = [s1, s2, s3].some(s => s === "");
+
+            if (anyShipHasMyGood) {
+                result.innerHTML = `<span class="text-green-700">✅ 您「必須」裝載至載有 ${mine} 的那艘船。</span>`;
+                result.className = "mt-3 font-bold text-center bg-green-50 p-2 rounded border border-green-200";
+            } else if (emptyShipsAvailable) {
+                result.innerHTML = `<span class="text-green-700">✅ 您可以啟動一艘空船來裝載 ${mine}。</span>`;
+                result.className = "mt-3 font-bold text-center bg-green-50 p-2 rounded border border-green-200";
+            } else {
+                result.innerHTML = `<span class="text-red-700">⛔ 沒有空船，且也沒有載著 ${mine} 的船。您目前無法裝載。</span>`;
+                result.className = "mt-3 font-bold text-center bg-red-50 p-2 rounded border border-red-200";
+            }
+        }
+
+        function setupScoringListeners() {
+            document.querySelectorAll('.score-input').forEach(input => {
+                input.addEventListener('input', calculateScore);
+            });
+        }
+
+        function calculateScore() {
+            let total = 0;
+            const resInput = parseInt(document.querySelector('[data-target="residence"]').value) || 0;
+            let resScore = 4;
+            if (resInput === 10) resScore = 5; else if (resInput === 11) resScore = 6; else if (resInput === 12) resScore = 7;
+            document.getElementById('score-residence').textContent = resScore + " VP";
+            total += resScore;
+
+            const fortInput = parseInt(document.querySelector('[data-target="fortress"]').value) || 0;
+            const fortScore = Math.floor(fortInput / 3);
+            document.getElementById('score-fortress').textContent = fortScore + " VP";
+            total += fortScore;
+
+            const custInput = parseInt(document.querySelector('[data-target="customs"]').value) || 0;
+            const custScore = Math.floor(custInput / 4);
+            document.getElementById('score-customs').textContent = custScore + " VP";
+            total += custScore;
+
+            const cityInput = parseInt(document.querySelector('[data-target="cityhall"]').value) || 0;
+            const cityScore = cityInput;
+            document.getElementById('score-cityhall').textContent = cityScore + " VP";
+            total += cityScore;
+
+            const guildSmall = parseInt(document.querySelector('[data-target="guild"]').value) || 0;
+            const guildLarge = parseInt(document.querySelector('[data-target="guild-large"]').value) || 0;
+            const guildScore = guildSmall + (guildLarge * 2);
+            document.getElementById('score-guild').textContent = guildScore + " VP";
+            total += guildScore;
+
+            document.getElementById('grand-total').textContent = total;
+        }
+
+        function resetScoring() {
+            document.querySelectorAll('.score-input').forEach(i => i.value = 0);
+            calculateScore();
+        }
+
+    </script>
+</body>
+</html>
