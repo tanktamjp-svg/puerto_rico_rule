@@ -3,245 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>波多黎各 1897：數位規則完全手冊 v1.0</title>
+    <title>波多黎各 1897 數位規則百科 v1.1</title>
     <style>
         :root {
-            --vintage-paper: #fdfaf1;
-            --ink-black: #2c1e1a;
-            --sepia-brown: #5d4037;
-            --accent-gold: #b8860b;
-            --success-green: #2e7d32;
+            --parchment: #fdfaf1;
+            --ink: #2c1e1a;
+            --sepia: #5d4037;
+            --accent: #8d6e63;
+            --gold: #b8860b;
+            --success: #2e7d32;
         }
 
-        /* 隱藏引用標記以保持網頁美觀 */
-        .citation { display: none; }
+        /* 隱藏引用標記以保持美觀，代碼層面保留精確度 */
+        .cite-mark { display: none; }
 
         html { scroll-behavior: smooth; }
         body {
-            font-family: "PingFang TC", "Microsoft JhengHei", sans-serif;
-            background-color: var(--vintage-paper);
-            color: var(--ink-black);
+            font-family: "PingFang TC", "Heiti TC", "Microsoft JhengHei", sans-serif;
+            background-color: var(--parchment);
+            color: var(--ink);
             line-height: 1.8;
             margin: 0;
             padding: 0;
         }
 
-        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        .wrapper { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
         header {
             text-align: center;
-            border-bottom: 3px double var(--sepia-brown);
+            border-bottom: 3px double var(--sepia);
             margin-bottom: 40px;
             padding-bottom: 20px;
         }
 
-        header h1 { font-size: 3em; color: var(--sepia-brown); margin: 0; }
-        .version-tag { font-size: 0.4em; background: var(--sepia-brown); color: white; padding: 2px 10px; border-radius: 20px; vertical-align: middle; }
+        header h1 { font-size: 2.5em; margin: 0; color: var(--sepia); }
+        .v-tag { font-size: 0.4em; background: var(--sepia); color: white; padding: 3px 12px; border-radius: 20px; vertical-align: middle; margin-left: 10px; }
 
-        /* 導航索引 */
-        nav.sticky-index {
+        /* 導覽索引 */
+        nav.main-nav {
             position: sticky;
-            top: 10px;
-            background: #efebe9;
+            top: 15px;
+            background: rgba(239, 235, 233, 0.95);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             z-index: 1000;
             margin-bottom: 40px;
         }
-        nav.sticky-index ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
-        nav.sticky-index a { text-decoration: none; color: var(--sepia-brown); font-weight: bold; font-size: 0.9em; }
-        nav.sticky-index a:hover { color: var(--gold); }
+        nav.main-nav ul { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+        nav.main-nav a { text-decoration: none; color: var(--sepia); font-weight: bold; font-size: 0.95em; transition: color 0.3s; }
+        nav.main-nav a:hover { color: var(--gold); }
 
-        /* 區塊樣式 */
+        /* 章節樣式 */
         section {
             background: #fff;
-            padding: 35px;
+            padding: 40px;
             border-radius: 10px;
             border: 1px solid #e0e0e0;
             margin-bottom: 40px;
-            box-shadow: 5px 5px 0px #d7ccc8;
+            box-shadow: 8px 8px 0px #d7ccc8;
         }
 
-        h2 { border-left: 10px solid var(--sepia-brown); padding-left: 20px; color: var(--sepia-brown); margin-top: 0; }
-        h3 { color: var(--sepia-brown); border-bottom: 1px solid #d7ccc8; padding-bottom: 5px; }
+        h2 { border-left: 12px solid var(--sepia); padding-left: 20px; color: var(--sepia); margin-top: 0; font-size: 1.8em; }
+        h3 { color: var(--accent); border-bottom: 2px solid #efebe9; padding-bottom: 8px; margin-top: 35px; }
 
-        /* 角色與卡片佈局 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .card { background: #fafafa; padding: 20px; border-radius: 8px; border: 1px solid #eee; }
-        .advantage-label { color: var(--success-green); font-weight: bold; border-top: 1px dashed #ccc; display: block; margin-top: 10px; padding-top: 5px; }
+        /* 網格與卡片 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .card { background: #f9f9f9; padding: 25px; border-radius: 8px; border: 1px solid #eee; position: relative; }
+        .advantage { color: var(--success); font-weight: bold; border-top: 1px dashed #ccc; display: block; margin-top: 12px; padding-top: 8px; }
+        
+        /* 擴充專用標籤 */
+        .exp-label { 
+            position: absolute; top: -10px; right: 10px; background: var(--sepia); color: white; 
+            padding: 2px 10px; font-size: 0.75em; border-radius: 4px; 
+        }
 
-        /* 擴充標籤 */
-        .exp-badge { background: #5d4037; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8em; margin-right: 10px; }
+        table { width: 100%; border-collapse: collapse; margin: 25px 0; font-size: 0.95em; }
+        th, td { border: 1px solid #d7ccc8; padding: 15px; text-align: left; }
+        th { background-color: #efebe9; color: var(--sepia); }
 
-        /* 百科摺疊區 */
-        details { margin: 15px 0; border: 1px solid #d7ccc8; border-radius: 5px; background: #fffdf5; }
-        summary { padding: 10px; font-weight: bold; cursor: pointer; color: var(--sepia-brown); }
-        .wiki-content { padding: 15px; font-size: 0.95em; border-top: 1px solid #eee; }
+        /* 腳本細節細節（摺疊區） */
+        details { margin: 15px 0; border: 1px solid #d7ccc8; border-radius: 8px; overflow: hidden; }
+        summary { padding: 15px; font-weight: bold; cursor: pointer; background: #fffdf5; color: var(--sepia); }
+        .details-body { padding: 20px; background: #fff; border-top: 1px solid #eee; }
 
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th, td { border: 1px solid #d7ccc8; padding: 12px; text-align: left; }
-        th { background-color: #d7ccc8; }
-
-        footer { text-align: center; padding: 40px; color: #888; font-size: 0.9em; }
+        footer { text-align: center; padding: 50px; color: #888; font-size: 0.9em; border-top: 1px solid #ddd; }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="wrapper">
     <header>
-        <h1>波多黎各 1897 <span class="version-tag">v1.0</span></h1>
-        <p>正統、敏捷且具備洞察力的規則資源中心</p>
+        <h1>波多黎各 1897 <span class="v-tag">v1.1 正式版</span></h1>
+        <p>1897 年，現代世界的黎明。您將在波多黎各島上建設領地，競爭財富與聲望。<span class="cite-mark">[cite: 7-11]</span></p>
     </header>
 
-    <nav class="sticky-index">
-        <strong>快速索引：</strong>
+    <nav class="main-nav">
         <ul>
-            <li><a href="#core-game">● 核心遊戲規則</a></li>
-            <li><a href="#roles">● 角色（職業）</a></li>
-            <li><a href="#buildings">● 建築完全指南</a></li>
-            <li><a href="#expansions">● 六大擴充模組</a></li>
-            <li><a href="#puertoma">● 單人模式 (Puertoma)</a></li>
-            <li><a href="#faq">● 常見問答百科</a></li>
+            <li><a href="#core">核心規則</a></li>
+            <li><a href="#roles">角色百科</a></li>
+            <li><a href="#buildings">建築指南</a></li>
+            <li><a href="#expansions">擴充詳解</a></li>
+            <li><a href="#puertoma">單人模式</a></li>
         </ul>
     </nav>
 
-    <section id="core-game">
-        <h2>核心遊戲規則</h2>
-        <p>遊戲目標是透過策略性管理波多黎各島來賺取最高勝利點數。<span class="citation">[cite: 116]</span></p>
+    <section id="core">
+        <h2>一、核心遊戲規則 (Core Game)</h2>
+        <p>遊戲目標是透過策略性地管理領地，賺取最多的勝利點數 (VP)。<span class="cite-mark">[cite: 115-116]</span></p>
         
         
         
-        <h3>基本回合結構</h3>
+        <h3>基本回合流程</h3>
         <ul>
-            <li>每回合由總督開始選取一個角色並執行行動。<span class="citation">[cite: 158]</span></li>
-            <li>其餘玩家按順時針方向執行該行動（不含優勢）。<span class="citation">[cite: 160-161]</span></li>
-            <li>回合結束：為未選角色添加 1 金幣，並將總督標記移交給左側玩家。<span class="citation">[cite: 166-168]</span></li>
+            <li><strong>選擇角色：</strong> 總督開始選擇角色，執行行動並享有「優勢」。<span class="cite-mark">[cite: 158-159]</span></li>
+            <li><strong>輪替行動：</strong> 其他玩家按順時針順序執行相同行動（無優勢）。<span class="cite-mark">[cite: 160-161]</span></li>
+            <li><strong>回合重置：</strong> 每個未被選擇的角色板塊放置 1 枚金幣，將總督標記傳給左側玩家。<span class="cite-mark">[cite: 166-168]</span></li>
         </ul>
-        <h3>結束條件：</h3>
+
+        <h3>遊戲結束條件</h3>
+        <p>當以下任一情況在回合結束時成立，遊戲結束：<span class="cite-mark">[cite: 399-402]</span></p>
         <ul>
-            <li>招募官階段無法補足工人標記。<span class="citation">[cite: 400]</span></li>
-            <li>任一玩家蓋滿 12 個建築位。<span class="citation">[cite: 401]</span></li>
-            <li>勝利點數 (VP) 標記被取完。<span class="citation">[cite: 402]</span></li>
+            <li><strong>工人耗盡：</strong> 招募官階段無法完全補足工作登記表。<span class="cite-mark">[cite: 400]</span></li>
+            <li><strong>建設全滿：</strong> 任一玩家蓋滿其 12 個建築空格。<span class="cite-mark">[cite: 401]</span></li>
+            <li><strong>點數領完：</strong> 在船長階段取走了最後一枚勝利點數標記。<span class="cite-mark">[cite: 402]</span></li>
         </ul>
     </section>
 
     <section id="roles">
-        <h2>角色與職業 (Roles)</h2>
-        <p>只有選擇該角色的玩家可以行使「優勢」。<span class="citation">[cite: 118]</span></p>
+        <h2>二、角色百科 (Characters & Roles)</h2>
+        <p>角色是遊戲的心臟。選擇者獲得優勢，其他玩家僅能執行基礎行動。<span class="cite-mark">[cite: 118]</span></p>
+
         
-        
-        
+
         <div class="grid">
             <div class="card">
                 <h3>莊園主 (Planter)</h3>
-                <p>行動：選取一塊面朝上的田地標記。<span class="citation">[cite: 244]</span></p>
-                <span class="advantage-label">優勢：可以改為拿取「採石場」。<span class="citation">[cite: 245]</span></span>
-            </div>
-            <div class="card">
-                <h3>招募官 (Recruiter)</h3>
-                <p>行動：按順序領取工人直到登記表清空。<span class="citation">[cite: 249-250]</span></p>
-                <span class="advantage-label">優勢：額外從供應區拿取 1 名工人。<span class="citation">[cite: 251]</span></span>
+                <p><strong>行動：</strong> 從供應區挑選一塊面朝上的田地（Estate）。<span class="cite-mark">[cite: 213]</span></p>
+                <span class="advantage">優勢：可以改為挑選一塊「採石場」(Quarry)。<span class="cite-mark">[cite: 214]</span></span>
             </div>
             <div class="card">
                 <h3>建築師 (Builder)</h3>
-                <p>行動：支付金幣購買建築物。<span class="citation">[cite: 283]</span></p>
-                <span class="advantage-label">優勢：建造費用減少 1 枚金幣。<span class="citation">[cite: 283]</span></span>
+                <p><strong>行動：</strong> 支付金幣建造一棟建築物。<span class="cite-mark">[cite: 275]</span></p>
+                <span class="advantage">優勢：建築費用減少 1 枚金幣。<span class="cite-mark">[cite: 276]</span></span>
+            </div>
+            <div class="card">
+                <h3>招募官 (Recruiter)</h3>
+                <p><strong>行動：</strong> 從登記表領取工人，直至登記表清空。<span class="cite-mark">[cite: 231-232]</span></p>
+                <span class="advantage">優勢：先從供應區額外領取 1 名工人。<span class="cite-mark">[cite: 230]</span></span>
             </div>
             <div class="card">
                 <h3>工藝師 (Craftsman)</h3>
-                <p>行動：根據產能產出貨物。<span class="citation">[cite: 303]</span></p>
-                <span class="advantage-label">優勢：額外獲得 1 份已產出的貨物。<span class="citation">[cite: 303]</span></span>
+                <p><strong>行動：</strong> 根據生產能力產出對應貨物。<span class="cite-mark">[cite: 294]</span></p>
+                <span class="advantage">優勢：額外多拿 1 份已產出的貨物。<span class="cite-mark">[cite: 295]</span></span>
             </div>
             <div class="card">
                 <h3>商人 (Trader)</h3>
-                <p>行動：將 1 份貨物賣給交易所。<span class="citation">[cite: 331]</span></p>
-                <span class="advantage-label">優勢：賣出時額外領取 1 枚金幣。<span class="citation">[cite: 331]</span></span>
+                <p><strong>行動：</strong> 賣出 1 份貨物給交易所。<span class="cite-mark">[cite: 315]</span></p>
+                <span class="advantage">優勢：賣出收益額外增加 1 枚金幣。<span class="cite-mark">[cite: 323]</span></span>
             </div>
             <div class="card">
                 <h3>船長 (Captain)</h3>
-                <p>行動：運送貨物上船以獲取 VP (強制性)。<span class="citation">[cite: 339, 345]</span></p>
-                <span class="advantage-label">優勢：若有運送則額外領取 1 VP。<span class="citation">[cite: 341, 359]</span></span>
+                <p><strong>行動：</strong> 將貨物載運上船以獲取 VP (強制執行)。<span class="cite-mark">[cite: 343-345]</span></p>
+                <span class="advantage">優勢：載運成功後額外獲得 1 VP。<span class="cite-mark">[cite: 359]</span></span>
+            </div>
+            <div class="card">
+                <h3>冒險家 (Adventurer)</h3>
+                <p><strong>行動：</strong> 無（其他玩家無行動）。<span class="cite-mark">[cite: 392]</span></p>
+                <span class="advantage">優勢：直接從供應區拿取 1 枚金幣。<span class="cite-mark">[cite: 414]</span></span>
             </div>
         </div>
     </section>
 
     <section id="buildings">
-        <h2>建築物指南 (Buildings)</h2>
-        <h3>作物生產鏈</h3>
+        <h2>三、建築指南 (Buildings)</h2>
+        <p>所有建築必須由工人駐守才能生效。<span class="cite-mark">[cite: 440]</span> 建築分為生產類與商業類。<span class="cite-mark">[cite: 446, 482]</span></p>
+
+        
+
+        <h3>貨物生產鏈參考</h3>
         <table>
-            <tr><th>貨物類型</th><th>必要生產建築</th><th>田地類型</th></tr>
-            <tr><td>玉米 (Corn)</td><td>無（直接生產）</td><td>玉米田<span class="citation">[cite: 463-464]</span></td></tr>
-            <tr><td>水果 (Fruit)</td><td>水果倉庫 (Fruit Depot)</td><td>水果田<span class="citation">[cite: 459]</span></td></tr>
-            <tr><td>糖 (Sugar)</td><td>糖廠 (Sugar Mill)</td><td>糖田<span class="citation">[cite: 460]</span></td></tr>
-            <tr><td>菸草 (Tobacco)</td><td>菸草工廠 (Tobacco Storage)</td><td>菸草田<span class="citation">[cite: 461]</span></td></tr>
-            <tr><td>咖啡 (Coffee)</td><td>烘焙坊 (Coffee Roaster)</td><td>咖啡田<span class="citation">[cite: 462]</span></td></tr>
+            <tr><th>作物名稱</th><th>田地需求</th><th>對應生產建築</th></tr>
+            <tr><td>玉米 (Corn)</td><td>玉米田</td><td>無需建築（田地直接產出）<span class="cite-mark">[cite: 463]</span></td></tr>
+            <tr><td>水果 (Fruit)</td><td>水果田</td><td>水果倉庫 (Fruit Depot)<span class="cite-mark">[cite: 459]</span></td></tr>
+            <tr><td>糖 (Sugar)</td><td>糖田</td><td>糖廠 (Sugar Mill)<span class="cite-mark">[cite: 460]</span></td></tr>
+            <tr><td>菸草 (Tobacco)</td><td>菸草田</td><td>菸草倉庫 (Tobacco Storage)<span class="cite-mark">[cite: 461]</span></td></tr>
+            <tr><td>咖啡 (Coffee)</td><td>咖啡田</td><td>烘焙坊 (Coffee Roaster)<span class="cite-mark">[cite: 462]</span></td></tr>
         </table>
+
         <h3>核心商業建築效能</h3>
         <ul>
-            <li><strong>辦公室 (Office)：</strong> 允許在交易所賣出重複貨物。<span class="citation">[cite: 527]</span></li>
-            <li><strong>工廠 (Factory)：</strong> 生產 2/3/4/5 種貨物分別獲 1/2/3/5 元。<span class="citation">[cite: 541-542]</span></li>
-            <li><strong>碼頭 (Wharf)：</strong> 擁有私人貨船，不受公用貨船限制。<span class="citation">[cite: 572-573]</span></li>
+            <li><strong>辦公室 (Office)：</strong> 允許在交易所賣出重複類型的貨物。<span class="cite-mark">[cite: 527]</span></li>
+            <li><strong>碼頭 (Wharf)：</strong> 擁有一艘私人貨船，不受公用船隻限制。<span class="cite-mark">[cite: 572-573]</span></li>
+            <li><strong>工廠 (Factory)：</strong> 生產多樣貨物時可獲高額金幣獎金。<span class="cite-mark">[cite: 539-542]</span></li>
+            <li><strong>大型建築：</strong> 如「市政廳」或「堡壘」，在終局提供大量點數。<span class="cite-mark">[cite: 578-615]</span></li>
         </ul>
     </section>
 
     <section id="expansions">
-        <h2>六大擴充模組 (Expansions)</h2>
-        <div class="grid">
-            <div class="card">
-                <span class="exp-badge">擴充 I</span> <strong>新建築：</strong> 引入伐木場、運河與隱藏市場等 24 棟新建築。<span class="citation">[cite: 639-650]</span>
+        <h2>四、擴充模組詳解 (Expansions)</h2>
+
+        <details>
+            <summary>擴充 I & II：新建築與公民</summary>
+            <div class="details-body">
+                <p><strong>模組 I 新建築：</strong> 加入 24 棟新建築，如「伐木場」（減免建築費）與「圖書館」（優勢翻倍）。<span class="cite-mark">[cite: 639-650]</span></p>
+                <p><strong>模組 II 公民：</strong> 引入 20 枚公民標記。公民在終局每個價值 1 VP，且公民標記領完不再導致遊戲結束。<span class="cite-mark">[cite: 801-810]</span></p>
             </div>
-            <div class="card">
-                <span class="exp-badge">擴充 II</span> <strong>公民：</strong> 紅色公民價值 1 VP，且工人耗盡不再觸發結束。<span class="citation">[cite: 801-810]</span>
+        </details>
+
+        <details>
+            <summary>擴充 III：走私者 (The Smuggler)</summary>
+            <div class="details-body">
+                <p>新增「走私者」職業。選擇者可從 4 種行動選 1：襲擊貨船、掠奪交易所、偷取工人或綁架角色。<span class="cite-mark">[cite: 880-900]</span></p>
+                <ul>
+                    <li>襲擊貨船：從貨船上拿走最多 3 份貨物。<span class="cite-mark">[cite: 885-886]</span></li>
+                    <li>掠奪交易所：清空交易所並獲得等量 VP。<span class="cite-mark">[cite: 888-889]</span></li>
+                </ul>
             </div>
-            <div class="card">
-                <span class="exp-badge">擴充 III</span> <strong>走私者：</strong> 新增走私者職業，可搶奪貨船或綁架角色。<span class="citation">[cite: 880-884]</span>
+        </details>
+
+        <details>
+            <summary>擴充 IV & V：慶典與節慶活動</summary>
+            <div class="details-body">
+                
+                <p>設置慶典版圖，隨機抽取田地、貨物及建築目標。<span class="cite-mark">[cite: 923-929]</span> 首位達成目標的玩家可領取如金幣、工人或 VP 的即時獎勵。<span class="cite-mark">[cite: 934-942]</span></p>
             </div>
-            <div class="card">
-                <span class="exp-badge">擴充 IV & V</span> <strong>慶典：</strong> 慶典板圖提供隨機目標獎勵。<span class="citation">[cite: 901-945]</span>
+        </details>
+
+        <details>
+            <summary>擴充 VI：個人成就系統</summary>
+            <div class="details-body">
+                <p>每位玩家開局分發 4 張秘密任務卡。達成卡片目標（如「建築大師」）可在終局獲得額外 VP。<span class="cite-mark">[cite: 970-983]</span></p>
             </div>
-            <div class="card">
-                <span class="exp-badge">擴充 VI</span> <strong>成就：</strong> 秘密任務卡提供終局額外點數。<span class="citation">[cite: 969-983]</span>
-            </div>
-        </div>
+        </details>
     </section>
 
     <section id="puertoma">
-        <h2>單人模式：Puertoma</h2>
-        <p>專為單人設計，對抗自動化對手。<span class="citation">[cite: 1029-1031]</span></p>
+        <h2>五、單人模式：Puertoma</h2>
+        <p>專為單人設計，對抗自動化玩家。<span class="cite-mark">[cite: 1012-1031]</span></p>
+
         
-        <h3>對手優先級：</h3>
+
+        <h3>自動化決策邏輯</h3>
         <ol>
-            <li>選取行動板上與當前標記相鄰的角色。<span class="citation">[cite: 1066]</span></li>
-            <li>若無相鄰，選擇金幣最多的可用角色。<span class="citation">[cite: 1068]</span></li>
-            <li>若仍平手，使用隨機平手判定卡。<span class="citation">[cite: 1069]</span></li>
+            <li><strong>優先順序：</strong> 優先選取行動板上與當前標記相鄰的角色標塊。<span class="cite-mark">[cite: 1066]</span></li>
+            <li><strong>獲利性：</strong> 僅在對其有利時才會選擇該角色（例如有錢蓋房才選建築師）。<span class="cite-mark">[cite: 1073-1074]</span></li>
+            <li><strong>計分規則：</strong> Puertoma 的大型建築不論功能，終局統一提供 6 VP。<span class="cite-mark">[cite: 1189]</span></li>
         </ol>
     </section>
 
-    <section id="faq">
-        <h2>常見問答百科 (FAQ)</h2>
-        <details>
-            <summary>採石場的折扣上限是多少？</summary>
-            <div class="wiki-content">
-                折扣取決於建築等級：1 VP 建築最多折 1 元，2 VP 建築折 2 元，3 VP 建築折 3 元，擴展建築最多折 4 元。<span class="citation"></span>
-            </div>
-        </details>
-        <details>
-            <summary>船長階段是強制的嗎？</summary>
-            <div class="wiki-content">
-                是的。只要你有貨物且貨船有空間或符合規則，你必須裝載。<span class="citation">[cite: 345]</span>
-            </div>
-        </details>
-        <details>
-            <summary>走私者的「綁架角色」如何運作？</summary>
-            <div class="wiki-content">
-                被選定的角色會被移至你面前，其他人若選用該角色須付你 3 金幣。若回合結束沒人選，則由你親自執行。<span class="citation">[cite: 894-898]</span>
-            </div>
-        </details>
-    </section>
-
     <footer>
-        <p>© 2026 波多黎各 1897 數位規則網站 - v1.0 正式版</p>
+        <p>© 2026 波多黎各 1897 數位規則百科 v1.1 - 由 Gemini 協力製作</p>
+        <p>基於官方《Puerto Rico 1897: Special Edition》規則書。<span class="cite-mark"></span></p>
     </footer>
 </div>
 
